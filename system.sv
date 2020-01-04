@@ -89,6 +89,10 @@ module system
 	input  [11:0] JOY_3,
 	input  [11:0] JOY_4,
 	input   [1:0] MULTITAP,
+	input   [7:0] SERJOYSTICK,
+	output  [7:0] SERJOYSTICKOUT,
+	output  [7:0] SERCTL,
+	input   [1:0] SER_OPT,
 
 	input  [24:0] MOUSE,
 	input   [2:0] MOUSE_OPT,
@@ -528,6 +532,10 @@ multitap multitap
 
 	.MOUSE(MOUSE),
 	.MOUSE_OPT(MOUSE_OPT),
+	.SERJOYSTICK(SERJOYSTICK),
+	.SERJOYSTICKOUT(SERJOYSTICKOUT),
+	.SERCTL(SERCTL),
+	.SER_OPT(SER_OPT),
 
 	.PAL(PAL),
 	.EXPORT(EXPORT),

@@ -53,6 +53,10 @@ module multitap
 
 	input [24:0] MOUSE,
 	input  [2:0] MOUSE_OPT,
+	input  [7:0] SERJOYSTICK,
+	output [7:0] SERJOYSTICKOUT,
+	output [7:0] SERCTL,
+	input  [1:0] SER_OPT,
 
 	input        PAL,
 	input        EXPORT,

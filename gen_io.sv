@@ -72,6 +72,10 @@ module gen_io
 
 	input     [24:0] MOUSE,
 	input      [2:0] MOUSE_OPT,
+	input      [7:0] SERJOYSTICK,
+	output reg [7:0] SERJOYSTICKOUT,
+	output reg [7:0] SERCTL,
+	input      [1:0] SER_OPT,
 
 	input            SEL,
 	input      [4:1] A,
@@ -104,8 +108,8 @@ always @(posedge RESET or posedge CLK) begin
 				// Read
 				case(A)
 						0: DO <= {EXPORT, PAL, ~DISK, 5'd0};
-						1: DO <= (CTLA & DATA) | (~CTLA & (MOUSE_OPT[0] ? mdata : PAD1_DO));
-						2: DO <= (CTLB & DATB) | (~CTLB & (MOUSE_OPT[1] ? mdata : PAD2_DO));
+						1: DO <= (CTLA & DATA) | (~CTLA & (SER_OPT[0] ? SERJOYSTICK : (MOUSE_OPT[0] ? mdata : PAD1_DO)));
+						2: DO <= (CTLB & DATB) | (~CTLB & (SER_OPT[1] ? SERJOYSTICK : (MOUSE_OPT[1] ? mdata : PAD2_DO)));
 						3: DO <= R[3] & R[6]; // Unconnected port
 				default: DO <= R[A];
 				endcase
@@ -186,6 +190,9 @@ wire TRB = DATB[5] & CTLB[5];
 wire MTH = (MOUSE_OPT[0] & PAD1_DO[6]) | (MOUSE_OPT[1] & PAD2_DO[6]);
 wire MTR = (MOUSE_OPT[0] & TRA) | (MOUSE_OPT[1] & TRB);
 wire [3:0] BTN = MOUSE_OPT[0] ? ~{P1_START,P1_C,P1_B,P1_A} : ~{P2_START,P2_C,P2_B,P2_A};
+
+assign SERJOYSTICKOUT = SER_OPT[0] ? CTLA & DATA : CTLB & DATB;
+assign SERCTL = SER_OPT[0] ? CTLA : CTLB;
 
 always @(posedge CLK) begin
 	reg old_stb;
