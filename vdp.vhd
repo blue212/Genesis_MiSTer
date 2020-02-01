@@ -73,6 +73,8 @@ entity vdp is
 		vram32_a    : out std_logic_vector(15 downto 1);
 		vram32_q    : in  std_logic_vector(31 downto 0);
 
+		EXINT       : out std_logic;
+		HL      		: in  std_logic;
 		HINT        : out std_logic;
 		VINT_TG68   : out std_logic;
 		VINT_T80    : out std_logic;
@@ -207,6 +209,10 @@ signal VINT_T80_CLR				: std_logic;
 signal VINT_T80_FF				: std_logic;
 
 signal INTACK_D					: std_logic;
+
+signal EXINT_PENDING	: std_logic;
+signal EXINT_PENDING_SET	: std_logic;
+signal EXINT_FF		: std_logic;
 ----------------------------------------------------------------
 -- REGISTERS
 ----------------------------------------------------------------
@@ -232,6 +238,7 @@ signal WRIGT_LATCH  : std_logic;
 signal BGCOL		: std_logic_vector(5 downto 0);
 
 signal HIT			: std_logic_vector(7 downto 0);
+signal IE2			: std_logic;
 signal IE1			: std_logic;
 signal IE0			: std_logic;
 
@@ -877,6 +884,7 @@ WRIGT <= REG(17)(7);
 BGCOL <= REG(7)(5 downto 0);
 
 HIT <= REG(10);
+IE2 <= REG(11)(3);--added
 IE1 <= REG(0)(4);
 IE0 <= REG(1)(5);
 
@@ -2278,6 +2286,7 @@ begin
 
 		HINT_EN <= '0';
 		HINT_PENDING_SET <= '0';
+		EXINT_PENDING_SET <= '0';
 		VINT_TG68_PENDING_SET <= '0';
 		VINT_T80_SET <= '0';
 		VINT_T80_CLR <= '0';
@@ -2301,6 +2310,7 @@ begin
 		end if;
 
 		HINT_PENDING_SET <= '0';
+		EXINT_PENDING_SET <= '0';
 		VINT_TG68_PENDING_SET <= '0';
 		VINT_T80_SET <= '0';
 		VINT_T80_CLR <= '0';
@@ -2365,6 +2375,14 @@ begin
 						HINT_COUNT <= HINT_COUNT - 1;
 					end if;
 				end if;
+				
+				---
+				if HL = '0' AND IE2 = '1' then
+						EXINT_PENDING_SET <= '1';
+				else
+						EXINT_PENDING_SET <= '0';
+				end if;
+				---
 
 				if HV_VCNT = "1"&x"FE" then
 					PRE_V_ACTIVE <= '1';
@@ -3512,6 +3530,36 @@ end process;
 ----------------------------------------------------------------
 -- INTERRUPTS AND VARIOUS LATCHES
 ----------------------------------------------------------------
+
+-- EXINT PENDING
+process( RST_N, CLK )
+begin
+	if RST_N = '0' then
+		EXINT_PENDING <= '0';
+	elsif rising_edge( CLK) then
+		if EXINT_PENDING_SET = '1' then
+			EXINT_PENDING <= '1';
+		elsif EXINT_FF = '1' then
+			EXINT_PENDING <= '0';
+		end if;
+	end if;	
+end process;
+
+-- EXINT
+EXINT <= EXINT_FF;
+process( RST_N, CLK )
+begin
+	if RST_N = '0' then
+		EXINT_FF <= '0';
+	elsif rising_edge( CLK) then
+		if EXINT_PENDING = '1' and IE2 = '1' then
+			EXINT_FF <= '1';
+		else
+			EXINT_FF <= '0';
+		end if;
+	end if;	
+end process;
+-------------------------------------------
 
 -- HINT PENDING
 process( RST_N, CLK )
