@@ -223,9 +223,9 @@ always @(posedge MCLK) begin
 		scnt <= scnt + 1'd1;
 		if(~M68K_AS_N) scnt <= 0;
 		if((~old_as & M68K_AS_N) || &scnt) begin
-			if (M68K_EXINT) M68K_IPL_N <= 3'b000;
-			else if (M68K_VINT) M68K_IPL_N <= 3'b001;
+			if (M68K_VINT) M68K_IPL_N <= 3'b001;
 			else if (M68K_HINT) M68K_IPL_N <= 3'b011;
+			else if (M68K_EXINT) M68K_IPL_N <= 3'b101;
 			else M68K_IPL_N <= 3'b111;
 		end
 	end

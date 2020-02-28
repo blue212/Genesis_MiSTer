@@ -202,11 +202,15 @@ always @(posedge CLK) begin
 	reg [3:0] cnt;
 	reg [5:0] delay;
 //not sure about this
+
 	if (CTLB[7] & ~CTLB[6]) begin
-		old_TH <= DATB[6];
-		if (old_TH & ~DATB[6])  begin
+		//old_TH <= DATB[6];
+		//if (old_TH & ~DATB[6])  begin
+		old_TH <= SERJOYSTICK[6];
+		if (old_TH & ~SERJOYSTICK[6])  begin
 		HL <= 0;
-		end
+		//HL <= SERJOYSTICK[6];
+		end		
 	else begin
 		HL <= 1'b1;
 	end

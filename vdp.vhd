@@ -239,6 +239,8 @@ signal BGCOL		: std_logic_vector(5 downto 0);
 
 signal HIT			: std_logic_vector(7 downto 0);
 signal IE2			: std_logic;
+attribute syn_keep: boolean;
+attribute syn_keep of IE2: signal is true;
 signal IE1			: std_logic;
 signal IE0			: std_logic;
 
@@ -2268,7 +2270,20 @@ REFRESH_SLOT <=
 	(H40 = '1' and HV_HCNT /= 500 and HV_HCNT /= 52 and HV_HCNT /= 118 and HV_HCNT /= 180 and HV_HCNT /= 244 and HV_HCNT /= 308) or
 	(H40 = '0' and HV_HCNT /= 486 and HV_HCNT /= 38 and HV_HCNT /= 102 and HV_HCNT /= 166 and HV_HCNT /= 230) else
 	'1';
-
+-----------------------------------------------------
+	
+process( CLK )
+begin
+--if RST_N = '0' then
+				--if HL = '0' AND IE2 = '1' then
+				if HL = '0' AND IE2 = '1' then
+						EXINT_PENDING_SET <= '1';
+				else
+						EXINT_PENDING_SET <= '0';
+				end if;
+end process;	
+	
+-----------------------------------------------------	
 process( RST_N, CLK )
 begin
 	if RST_N = '0' then
@@ -2286,7 +2301,7 @@ begin
 
 		HINT_EN <= '0';
 		HINT_PENDING_SET <= '0';
-		EXINT_PENDING_SET <= '0';
+		--EXINT_PENDING_SET <= '0';
 		VINT_TG68_PENDING_SET <= '0';
 		VINT_T80_SET <= '0';
 		VINT_T80_CLR <= '0';
@@ -2308,9 +2323,16 @@ begin
 		if M3='0' then
 			HV <= HV_VCNT_EXT(7 downto 1) & HV8 & HV_HCNT(8 downto 1);
 		end if;
+		
+				--if HL = '0' AND IE2 = '1' then
+				--if HL = '0' then
+				--		EXINT_PENDING_SET <= '1';
+				--else
+				--		EXINT_PENDING_SET <= '0';
+				--end if;
 
 		HINT_PENDING_SET <= '0';
-		EXINT_PENDING_SET <= '0';
+		--EXINT_PENDING_SET <= '0';
 		VINT_TG68_PENDING_SET <= '0';
 		VINT_T80_SET <= '0';
 		VINT_T80_CLR <= '0';
@@ -2377,11 +2399,11 @@ begin
 				end if;
 				
 				---
-				if HL = '0' AND IE2 = '1' then
-						EXINT_PENDING_SET <= '1';
-				else
-						EXINT_PENDING_SET <= '0';
-				end if;
+--				if HL = '0' AND IE2 = '1' then
+--						EXINT_PENDING_SET <= '1';
+--				else
+--						EXINT_PENDING_SET <= '0';
+--				end if;
 				---
 
 				if HV_VCNT = "1"&x"FE" then
@@ -3532,18 +3554,18 @@ end process;
 ----------------------------------------------------------------
 
 -- EXINT PENDING
-process( RST_N, CLK )
-begin
-	if RST_N = '0' then
-		EXINT_PENDING <= '0';
-	elsif rising_edge( CLK) then
-		if EXINT_PENDING_SET = '1' then
-			EXINT_PENDING <= '1';
-		elsif EXINT_FF = '1' then
-			EXINT_PENDING <= '0';
-		end if;
-	end if;	
-end process;
+--process( RST_N, CLK )
+--begin
+--	if RST_N = '0' then
+--		EXINT_PENDING <= '0';
+--	elsif rising_edge( CLK) then
+--		if EXINT_PENDING_SET = '1' then
+--			EXINT_PENDING <= '1';
+--		elsif EXINT_FF = '1' then
+--			EXINT_PENDING <= '0';
+--		end if;
+--	end if;	
+--end process;
 
 -- EXINT
 EXINT <= EXINT_FF;
@@ -3567,6 +3589,7 @@ begin
 	if RST_N = '0' then
 		HINT_PENDING <= '0';
 		VINT_TG68_PENDING <= '0';
+		EXINT_PENDING <= '0';
 	elsif rising_edge( CLK) then
 		INTACK_D <= INTACK;
 		--acknowledge interrupts serially
@@ -3575,6 +3598,9 @@ begin
 				VINT_TG68_PENDING <= '0';
 			elsif HINT_FF = '1' then
 				HINT_PENDING <= '0';
+			--end if;
+			elsif EXINT_FF = '1' then
+				EXINT_PENDING <= '0';
 			end if;
 		end if;
 		if HINT_PENDING_SET = '1' then
@@ -3582,6 +3608,9 @@ begin
 		end if;
 		if VINT_TG68_PENDING_SET = '1' then
 			VINT_TG68_PENDING <= '1';
+		end if;
+			if EXINT_PENDING_SET = '1' then
+			EXINT_PENDING <= '1';
 		end if;
 	end if;	
 end process;
