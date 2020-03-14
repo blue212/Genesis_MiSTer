@@ -74,7 +74,7 @@ entity vdp is
 		vram32_q    : in  std_logic_vector(31 downto 0);
 
 		EXINT       : out std_logic;
-		HL      		: in  std_logic;
+		HL      	: in  std_logic;
 		HINT        : out std_logic;
 		VINT_TG68   : out std_logic;
 		VINT_T80    : out std_logic;
@@ -210,9 +210,9 @@ signal VINT_T80_FF				: std_logic;
 
 signal INTACK_D					: std_logic;
 
-signal EXINT_PENDING	: std_logic;
-signal EXINT_PENDING_SET	: std_logic;
-signal EXINT_FF		: std_logic;
+signal EXINT_PENDING			: std_logic;
+signal EXINT_PENDING_SET		: std_logic;
+signal EXINT_FF					: std_logic;
 ----------------------------------------------------------------
 -- REGISTERS
 ----------------------------------------------------------------
@@ -239,12 +239,11 @@ signal BGCOL		: std_logic_vector(5 downto 0);
 
 signal HIT			: std_logic_vector(7 downto 0);
 signal IE2			: std_logic;
-attribute syn_keep: boolean;
-attribute syn_keep of IE2: signal is true;
 signal IE1			: std_logic;
 signal IE0			: std_logic;
 
 signal M3			: std_logic;
+signal OLD_HL 		: std_logic;--just for testing
 signal DE			: std_logic;
 signal M5			: std_logic;
 
@@ -886,7 +885,7 @@ WRIGT <= REG(17)(7);
 BGCOL <= REG(7)(5 downto 0);
 
 HIT <= REG(10);
-IE2 <= REG(11)(3);--added
+IE2 <= REG(11)(3);
 IE1 <= REG(0)(4);
 IE0 <= REG(1)(5);
 
@@ -2273,14 +2272,20 @@ REFRESH_SLOT <=
 -----------------------------------------------------
 	
 process( CLK )
+--process( RST_N, CLK )
 begin
---if RST_N = '0' then
-				--if HL = '0' AND IE2 = '1' then
-				if HL = '0' AND IE2 = '1' then
-						EXINT_PENDING_SET <= '1';
-				else
-						EXINT_PENDING_SET <= '0';
-				end if;
+	--if RST_N = '0' then
+	--	EXINT_PENDING <= '0';
+	--elsif rising_edge( CLK) then
+		if rising_edge(CLK) then
+			OLD_HL <= HL;
+        
+			if OLD_HL = '1' and HL = '0' and IE2 = '1' then
+				EXINT_PENDING_SET <= '1';
+			else
+				EXINT_PENDING_SET <= '0';
+			end if;
+		end if;	
 end process;	
 	
 -----------------------------------------------------	
@@ -2319,17 +2324,14 @@ begin
 		SP2_EN <= '0';
 
 	elsif rising_edge(CLK) then
-
-		if M3='0' then
-			HV <= HV_VCNT_EXT(7 downto 1) & HV8 & HV_HCNT(8 downto 1);
+	
+		if M3 ='1' then	
+			if HL ='1' then
+				HV <= HV_VCNT_EXT(7 downto 1) & HV8 & HV_HCNT(8 downto 1);
+			end if;
+		else
+			HV <= HV_VCNT_EXT(7 downto 1) & HV8 & HV_HCNT(8 downto 1);		
 		end if;
-		
-				--if HL = '0' AND IE2 = '1' then
-				--if HL = '0' then
-				--		EXINT_PENDING_SET <= '1';
-				--else
-				--		EXINT_PENDING_SET <= '0';
-				--end if;
 
 		HINT_PENDING_SET <= '0';
 		--EXINT_PENDING_SET <= '0';
@@ -2397,14 +2399,6 @@ begin
 						HINT_COUNT <= HINT_COUNT - 1;
 					end if;
 				end if;
-				
-				---
---				if HL = '0' AND IE2 = '1' then
---						EXINT_PENDING_SET <= '1';
---				else
---						EXINT_PENDING_SET <= '0';
---				end if;
-				---
 
 				if HV_VCNT = "1"&x"FE" then
 					PRE_V_ACTIVE <= '1';
@@ -3553,20 +3547,6 @@ end process;
 -- INTERRUPTS AND VARIOUS LATCHES
 ----------------------------------------------------------------
 
--- EXINT PENDING
---process( RST_N, CLK )
---begin
---	if RST_N = '0' then
---		EXINT_PENDING <= '0';
---	elsif rising_edge( CLK) then
---		if EXINT_PENDING_SET = '1' then
---			EXINT_PENDING <= '1';
---		elsif EXINT_FF = '1' then
---			EXINT_PENDING <= '0';
---		end if;
---	end if;	
---end process;
-
 -- EXINT
 EXINT <= EXINT_FF;
 process( RST_N, CLK )
@@ -3598,9 +3578,8 @@ begin
 				VINT_TG68_PENDING <= '0';
 			elsif HINT_FF = '1' then
 				HINT_PENDING <= '0';
-			--end if;
 			elsif EXINT_FF = '1' then
-				EXINT_PENDING <= '0';
+				EXINT_PENDING <= '0';				
 			end if;
 		end if;
 		if HINT_PENDING_SET = '1' then

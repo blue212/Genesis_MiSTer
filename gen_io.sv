@@ -201,19 +201,13 @@ always @(posedge CLK) begin
 	reg mtrd,mtrd2;
 	reg [3:0] cnt;
 	reg [5:0] delay;
-//not sure about this
 
+	//should add both ports, even if port one is not used in games
 	if (CTLB[7] & ~CTLB[6]) begin
-		//old_TH <= DATB[6];
-		//if (old_TH & ~DATB[6])  begin
-		old_TH <= SERJOYSTICK[6];
-		if (old_TH & ~SERJOYSTICK[6])  begin
-		HL <= 0;
-		//HL <= SERJOYSTICK[6];
-		end		
+		HL <= SERJOYSTICK[6];
+	end		
 	else begin
 		HL <= 1'b1;
-	end
 	end
 	
 	if(!delay) begin

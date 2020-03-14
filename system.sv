@@ -300,7 +300,6 @@ wire        VBUS_SEL;
 wire        VBUS_BR_N;
 wire        VBUS_BGACK_N;
 
-
 wire        M68K_EXINT;
 wire        M68K_HINT;
 wire        M68K_VINT;
@@ -382,8 +381,7 @@ wire VDP_hs, VDP_vs;
 assign HS = ~VDP_hs;
 assign VS = ~VDP_vs;
 
-//wire VDP_HL = HL;
-reg HL;
+wire HL;
 
 vdp vdp
 (
